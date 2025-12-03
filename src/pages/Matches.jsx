@@ -8,8 +8,6 @@ const Matches = () => {
   const [upcomingMatches, setUpcomingMatches] = useState([])
   const [filterTeam, setFilterTeam] = useState('');
   const [filterTournament, setFilterTournament] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-
   useEffect(() => {
     async function fetchApi() {
       try {
@@ -19,15 +17,13 @@ const Matches = () => {
         const scores = data.data;
 
         const filteredPreviousMatches = scores.filter((m) => {
-          return m.status !== "Match not started"
+          return m.ms == "result"
         })
         setPreviousMatches(filteredPreviousMatches)
         const filteredUpcomingMatches = scores.filter((m) => {
-          return m.status == "Match not started"
+          return m.status !== "Match not started"
         })
         setUpcomingMatches(filteredUpcomingMatches)
-
-
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -35,37 +31,16 @@ const Matches = () => {
     }
     fetchApi();
   }, [])
-  const sortedMatches = upcomingMatches.sort((a, b) => {
 
-    if (a.series === "Asia Cup 2025") return -1;
-    if (a.series !== "Asia Cup 2025") return 1;
-    return new Date(a.dateTimeGMT) - new Date(b.dateTimeGMT);
+  const filteredMatches = (activeTab === 'previous' ? previousMatches : upcomingMatches)
+    .filter(match =>
+      (filterTeam === '' || match.t1.includes(filterTeam) || match.t2.includes(filterTeam)) &&
+      (filterTournament === '' || match.series.includes(filterTournament))
+    );
 
-  });
 
-  const filteredMatches = (activeTab === 'previous' ? previousMatches : sortedMatches)
-  // .filter(match =>
-  //   (filterTeam === '' || match.t1.includes(filterTeam) || match.t2.includes(filterTeam)) &&
-  //   (filterTournament === '' || match.series.includes(filterTournament))
-  // );
-
-  // const totalPages = Math.ceil(filteredMatches.length / itemsPerPage);
-  // const paginatedMatches = filteredMatches.slice(
-  //   (currentPage - 1) * itemsPerPage,
-  //   currentPage * itemsPerPage
-  // );
-  // console.log(paginatedMatches);
-
-  //  const allTeams = [...new Set([
-  //   ...previousMatches.map(m => m.t1 , m.t2),
-  //   ...upcomingMatches.map(m => m.t1 , m.t2 )
-  // ])].sort();
   const allTeams = ["pakistan", "India", "England", "South Africa", "Austalia", "New Zeland", "Bangladesh", "Sri Lanka", "Namibia", "Oman", "Uae", "Afghanistan"]
   const allTournaments = ["Asia cup 2025", "ipl 2024", "Test Championship", "Big Bash League", "Women's Championship", "Women's T20 League"]
-  // const allTournaments = [...new Set([
-  //   ...previousMatches.map(m => m.tournament),
-  //   ...upcomingMatches.map(m => m.tournament)
-  // ])].sort();
 
   return (
     <div className="space-y-6">
@@ -74,7 +49,7 @@ const Matches = () => {
       {/* Tabs */}
       <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
         <button
-          onClick={() => { setActiveTab('previous'); setCurrentPage(1); }}
+          onClick={() => { setActiveTab('previous'); }}
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${activeTab === 'previous'
             ? 'bg-white text-green-600 shadow-sm'
             : 'text-gray-600 hover:text-gray-800'
@@ -83,7 +58,7 @@ const Matches = () => {
           Previous Matches
         </button>
         <button
-          onClick={() => { setActiveTab('upcoming'); setCurrentPage(1); }}
+          onClick={() => { setActiveTab('upcoming'); }}
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${activeTab === 'upcoming'
             ? 'bg-white text-green-600 shadow-sm'
             : 'text-gray-600 hover:text-gray-800'
